@@ -125,11 +125,9 @@ def change_steer_angle(inc):
         print("turning {} rad {}".format(str(steering_angle),turn))
 
 
-
 # main
 
 def main():
-    global speed
     counter = 0
     # Create the Robot instance.
     robot = Car()
@@ -143,10 +141,8 @@ def main():
     camera.enable(timestep)  # timestep
     camera.recognitionEnable(timestep)
 
-    # processing display
     display_img = Display("display")
-
-
+    
     #create keyboard instance
     keyboard=Keyboard()
     keyboard.enable(timestep)
@@ -160,11 +156,14 @@ def main():
 
     num_points = lidar.getNumberOfPoints()
 
+
+
     while robot.step() != -1:
         # Get image from camera
         image = get_image(camera)
         greyscale_image = greyscale_cv2(image)
-        display_image(display_img, greyscale_image)
+        #display_image(display_img, greyscale_image)
+
 
 
         img_array = np.array(greyscale_image)
@@ -188,24 +187,34 @@ def main():
        
         for i in range(num_points):
             distance = range_image[i]
-
-            if distance < 11.0:
+            if distance < 15.0 and distance > 12.0 :
+               angle = lidar.getHorizontalResolution() * i
+               print(f"Objeto detectado a {distance:.2f} metros en el ángulo {angle:.2f} radianes")
+               speed =mid
+               #print('Actual speed: ',mid)
+               break
+            elif distance < 12.0:
                 speed=zero
                 print('Vehiculo detenido evitar colision')
-                break
-            elif distance < 15.0:
-                angle = lidar.getHorizontalResolution() * i
-                print(f"Objeto detectado a {distance:.2f} metros en el ángulo {angle:.2f} radianes")
-                speed =mid
-                print('Actual speed: ',mid)
                 break
             else:
                 speed=max_speed
             
         #update angle and speed
-        print(predicted_angle, speed)
+        #print(predicted_angle)
         driver.setCruisingSpeed(speed)
-        print('Actual speed: ',speed)
+        #print('Actual speed: ',speed)
+
+       # Clear previous text by filling the display with a background color (e.g., black)
+        display_img.setColor(0x000000)
+        display_img.fillRectangle(0, 60, display_img.getWidth(), 20)
+
+        # Draw the updated speed text
+        txt = f"Actual speed:  {speed:.1f}"
+        display_img.setColor(0xFFFFFF)  # Set text color to white
+        display_img.setFont("Arial", 15, True)  # Set font size and anti-aliasing
+        display_img.drawText(txt, 10, 60)
+
 
         driver.setSteeringAngle(predicted_angle)
         
